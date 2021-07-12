@@ -1,0 +1,10 @@
+18:12:01 **** Incremental Build of configuration Debug for project HAL_VALIDATE ****
+make -j8 all 
+arm-none-eabi-size   HAL_VALIDATE.elf 
+   text	   data	    bss	    dec	    hex	filename
+  22184	    124	   2188	  24496	   5fb0	HAL_VALIDATE.elf
+Finished building: default.size.stdout
+ 
+
+18:12:01 Build Finished. 0 errors, 0 warnings. (took 372ms)
+

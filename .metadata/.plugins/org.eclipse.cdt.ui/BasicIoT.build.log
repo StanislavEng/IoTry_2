@@ -1,0 +1,10 @@
+21:37:52 **** Incremental Build of configuration Debug for project BasicIoT ****
+make -j8 all 
+arm-none-eabi-size   BasicIoT.elf 
+   text	   data	    bss	    dec	    hex	filename
+  21492	    124	   1956	  23572	   5c14	BasicIoT.elf
+Finished building: default.size.stdout
+ 
+
+21:37:52 Build Finished. 0 errors, 0 warnings. (took 363ms)
+
