@@ -1,10 +1,33 @@
-21:37:52 **** Incremental Build of configuration Debug for project BasicIoT ****
+22:35:11 **** Incremental Build of configuration Debug for project BasicIoT ****
 make -j8 all 
+arm-none-eabi-gcc "../Core/Src/main.c" -mcpu=cortex-m4 -std=gnu11 -g3 -DDEBUG -DUSE_HAL_DRIVER -DSTM32L475xx -c -I../Core/Inc -I../Drivers/STM32L4xx_HAL_Driver/Inc -I../Drivers/STM32L4xx_HAL_Driver/Inc/Legacy -I../Drivers/CMSIS/Device/ST/STM32L4xx/Include -I../Drivers/CMSIS/Include -O0 -ffunction-sections -fdata-sections -Wall -fstack-usage -MMD -MP -MF"Core/Src/main.d" -MT"Core/Src/main.o" --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -o "Core/Src/main.o"
+../Core/Src/main.c: In function 'readAccel':
+../Core/Src/main.c:521:58: warning: passing argument 5 of 'HAL_I2C_Mem_Read' from incompatible pointer type [-Wincompatible-pointer-types]
+  521 |  ret = HAL_I2C_Mem_Read(&hi2c2, LSM6_ADDR, XALL_ADDR, 1, &buf, 6, HAL_MAX_DELAY);
+      |                                                          ^~~~
+      |                                                          |
+      |                                                          uint8_t (*)[6] {aka unsigned char (*)[6]}
+In file included from ../Core/Inc/stm32l4xx_hal_conf.h:341,
+                 from ../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal.h:30,
+                 from ../Core/Inc/main.h:31,
+                 from ../Core/Src/main.c:21:
+../Drivers/STM32L4xx_HAL_Driver/Inc/stm32l4xx_hal_i2c.h:613:66: note: expected 'uint8_t *' {aka 'unsigned char *'} but argument is of type 'uint8_t (*)[6]' {aka 'unsigned char (*)[6]'}
+  613 |                                    uint16_t MemAddSize, uint8_t *pData, uint16_t Size, uint32_t Timeout);
+      |                                                         ~~~~~~~~~^~~~~
+arm-none-eabi-gcc -o "BasicIoT.elf" @"objects.list"   -mcpu=cortex-m4 -T"F:\engineering\codespace\IoTry\HAL_Validate\BasicIoT\STM32L475VGTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="BasicIoT.map" -Wl,--gc-sections -static --specs=nano.specs -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+Finished building target: BasicIoT.elf
+ 
+arm-none-eabi-objdump -h -S  BasicIoT.elf  > "BasicIoT.list"
+arm-none-eabi-objcopy  -O binary  BasicIoT.elf  "BasicIoT.bin"
 arm-none-eabi-size   BasicIoT.elf 
    text	   data	    bss	    dec	    hex	filename
-  21492	    124	   1956	  23572	   5c14	BasicIoT.elf
+  22028	    124	   1956	  24108	   5e2c	BasicIoT.elf
 Finished building: default.size.stdout
  
+Finished building: BasicIoT.bin
+ 
+Finished building: BasicIoT.list
+ 
 
-21:37:52 Build Finished. 0 errors, 0 warnings. (took 363ms)
+22:35:12 Build Finished. 0 errors, 1 warnings. (took 1s.488ms)
 

@@ -53,6 +53,11 @@ static const uint8_t LSM6_ADDR = 0x6A << 1; // I'm remember what this is? I thin
 static const uint8_t XALL_ADDR = 0x28; // next  8 bits (will I need this if I try to read 2 bytes?)
 //static const uint8_t INT1_CTRL = 0x0D;
 static uint8_t config = 0x60;	// 01100000; high speed
+//static uint16_t xread;
+//static uint16_t yread;
+//static uint16_t zread;
+//static uint16_t AccelVal[3];
+
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -63,10 +68,15 @@ static void MX_USART1_UART_Init(void);
 static void MX_TIM6_Init(void);
 static void MX_TIM7_Init(void);
 /* USER CODE BEGIN PFP */
-void readXval(uint8_t* buf);
-void readYval(uint8_t* buf);
-void readZval(uint8_t* buf);
+//void readXval(uint8_t* buf);
+//void readYval(uint8_t* buf);
+//void readZval(uint8_t* buf);
 void LEDBlink();
+//uint16_t * readAccel();
+// in C you can't pass by reference
+//void readAccel(uint16_t *retval); //
+void readAccel(uint16_t *retval,char *retSi);
+void LEDfunc(uint16_t *accVal, char *acSi);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -83,9 +93,11 @@ int main(void)
   /* USER CODE BEGIN 1 */
 		HAL_StatusTypeDef ret; // status of I2C commands
 		uint8_t text[50] = "Hello!\r\n";  // text array for outputting in UART
-		uint8_t buf[6]; 			 // buffer for register values supposed to be
+		//uint8_t buf[6]; 			 // buffer for register values supposed to be
 		//uint16_t val;  				 // the combined registers of x accelerometer value
 		//float xval;
+		uint16_t AccelVal[3];      // want an array
+		char acSign[3];
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -135,12 +147,16 @@ int main(void)
 
 	  LEDBlink();
 	  HAL_Delay(100);
-	  readXval(&buf);
-	  HAL_Delay(10);
-	  readYval(&buf);
-	  HAL_Delay(10);
-	  readZval(&buf);
-	  HAL_Delay(70);
+	  readAccel(AccelVal,acSign);
+	  HAL_Delay(100);
+	  LEDfunc(AccelVal,acSign);
+	  HAL_Delay(500);
+//	  readXval(&buf);
+//	  HAL_Delay(10);
+//	  readYval(&buf);
+//	  HAL_Delay(10);
+//	  readZval(&buf);
+//	  HAL_Delay(70);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -475,8 +491,9 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	/*if (htim == &htim6){
+/*
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){  // some overlap with timers prventing working
+	if (htim == &htim6){
 		uint8_t buff[] = "Hello World!!\r\n";
 		HAL_UART_Transmit(&huart1, buff, sizeof(buff), 1000);
 		HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
@@ -484,14 +501,107 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	}
 	if (htim == &htim7){
 		readXval();
-	}*/
-}
+	}
+}*/
 void LEDBlink (){
-	uint8_t buff[] = "New Data Acquired: ";
+	uint8_t buff[] = "\n\n\n\n\n\n\n\n\n\n\nNew Data Acquired: \r\n";
 	HAL_UART_Transmit(&huart1, buff, sizeof(buff), 1000);
 	HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
     HAL_GPIO_TogglePin(LED2_GPIO_Port, LED2_Pin);
 }
+//void readAccel(uint16_t *retval){
+void readAccel(uint16_t *retval, char *retSi){
+//void readAccel(uint16_t ** retval){
+	HAL_StatusTypeDef ret; // status of I2C commands
+	uint8_t text[50];      // text array for outputting in UART
+	uint8_t buf[6];        // takes in data from IMU
+	uint16_t val;          // combined value
+//	uint16_t retarr[3];
+	// read values from I2C
+	ret = HAL_I2C_Mem_Read(&hi2c2, LSM6_ADDR, XALL_ADDR, 1, &buf, 6, HAL_MAX_DELAY);
+	if (ret != HAL_OK){  // if I2C fails
+	  strcpy((char*)text,"ERROR RX1\r\n");
+	  HAL_UART_Transmit(&huart1, text, strlen((char*)text), HAL_MAX_DELAY);
+	}
+
+	//// combing upper and lower values /////
+	val = (((uint16_t)buf[1] << 8) | buf[0]);                             // creates X values
+	/////////////////////////////////////////
+	// dealing with the two's complement and making printable string
+	if ( val > 0x7FFF ) {
+		val = ~val & 0x7FFF;
+		sprintf((char*)text,"X value: -%u \r\n",((unsigned int)(val)));   // negative condition
+		retSi[0] = '-';
+	}
+	else {
+		sprintf((char*)text,"X value: %u \r\n",((unsigned int)(val)));    // not negative
+		retSi[0] = '+';
+	}
+	retval[0] = val;
+	HAL_UART_Transmit(&huart1, text, strlen((char*)text), HAL_MAX_DELAY); // prints
+
+	/////////////////////////////////////////
+	val = (((uint16_t)buf[3] << 8) | buf[2]);                             // creates Y values
+	/////////////////////////////////////////
+	if ( val > 0x7FFF ) {
+		val = ~val & 0x7FFF;
+		sprintf((char*)text,"Y value: -%u \r\n",((unsigned int)(val)));
+		retSi[1] = '-';
+	}
+	else {
+		sprintf((char*)text,"Y value: %u \r\n",((unsigned int)(val)));
+		retSi[1] = '+';
+	}
+	retval[1] = val;
+	HAL_UART_Transmit(&huart1, text, strlen((char*)text), HAL_MAX_DELAY);
+
+	/////////////////////////////////////////
+	val = (((uint16_t)buf[5] << 8) | buf[4]);                             // creates Z values
+	/////////////////////////////////////////
+	if ( val > 0x7FFF ) {
+		val = ~val & 0x7FFF;
+		sprintf((char*)text,"Z value: -%u \r\n",((unsigned int)(val)));
+		retSi[2] = '-';
+	}
+	else {
+//		sprintf((char*)text,"Z value: %u \r\n\n\n\n\n",((unsigned int)(val)));
+		sprintf((char*)text,"Z value: %u \r\n",((unsigned int)(val)));
+		retSi[2] = '+';
+	}
+	retval[2] = val;
+	HAL_UART_Transmit(&huart1, text, strlen((char*)text), HAL_MAX_DELAY); // prints
+//	return &retarr;
+}
+//void LEDfunc(uint16_t *accVal){
+void LEDfunc(uint16_t *accVal, char *acSi){
+	uint8_t out[16];
+	if (accVal[0] > 5000){
+		//strcpy((char*)out,"X is pos");
+		sprintf((char*)out,"X is %c%d\r\n",acSi[0],accVal[0]);
+	}
+	else{
+		strcpy((char*)out,"X is low\r\n");
+	}
+	HAL_UART_Transmit(&huart1, out, strlen((char*)out), HAL_MAX_DELAY);
+	if (accVal[1] > 5000){
+		sprintf((char*)out,"Y is %c%d\r\n",acSi[1],accVal[1]);
+	}
+	else{
+		strcpy((char*)out,"Y is low\r\n");
+	}
+	HAL_UART_Transmit(&huart1, out, strlen((char*)out), HAL_MAX_DELAY);
+	if (accVal[2] > 5000){
+		sprintf((char*)out,"Z is %c%d\r\n",acSi[2],accVal[2]);
+	}
+	else{
+		strcpy((char*)out,"Z is low\r\n");
+	}
+	HAL_UART_Transmit(&huart1, out, strlen((char*)out), HAL_MAX_DELAY);
+
+
+}
+
+/*
 void readXval(uint8_t *buf){
 
 		HAL_StatusTypeDef ret; // status of I2C commands
@@ -554,7 +664,8 @@ void readZval(uint8_t *buf){
 	// create string value of combined accelerometer x value
 	sprintf((char*)text,"Z value: %u \r\n",((unsigned int)(val)));
 	HAL_UART_Transmit(&huart1, text, strlen((char*)text), HAL_MAX_DELAY); // prints
-}
+}*/
+
 /* USER CODE END 4 */
 
 /**
