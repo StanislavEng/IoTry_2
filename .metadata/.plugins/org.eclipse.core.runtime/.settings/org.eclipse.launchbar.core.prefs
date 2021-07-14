@@ -4,5 +4,6 @@ LaunchTargetManager/org.eclipse.launchbar.core.launchTargetType.local,Local/os=w
 configDescList=org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:HAL_VALIDATE Debug,org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BasicIoT Debug
 eclipse.preferences.version=1
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BasicIoT\ Debug/activeLaunchMode=debug
+org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:BasicIoT\ Debug/activeLaunchTarget=null\:---
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:HAL_VALIDATE\ Debug/activeLaunchMode=run
 org.eclipse.cdt.dsf.gdb.gdbRemotedescriptorType\:HAL_VALIDATE\ Debug/activeLaunchTarget=null\:---
